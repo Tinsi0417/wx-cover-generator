@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信公众号封面生成器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center; margin-bottom: 40px; padding: 30px;
+            background: white; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 2.5rem; color: #333; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 1.1rem; }
+        .style-tags {
+            display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px;
+        }
+        .style-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 8px 20px; border-radius: 20px; font-size: 0.9rem;
+        }
+        .keywords-input {
+            background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .keywords-input h3 { margin-bottom: 15px; color: #333; }
+        .keyword-input-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .keyword-chip {
+            background: #e0e7ff; color: #4338ca; padding: 8px 20px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent;
+        }
+        .keyword-chip:hover { background: #c7d2fe; transform: scale(1.05); }
+        .keyword-chip.selected { background: #4338ca; color: white; border-color: #4338ca; }
+        .generate-btn {
+            margin-top: 20px; width: 100%; padding: 15px; border: none; border-radius: 10px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+            transition: all 0.3s ease;
+        }
+        .generate-btn:hover { transform: scale(1.02); }
+        .covers-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 25px;
+        }
+        .cover-card {
+            background: white; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: all 0.3s ease;
+        }
+        .cover-card:hover { transform: translateY(-5px); }
+        .cover-image-container { width: 100%; padding-top: 56.25%; position: relative; background: #f0f0f0; }
+        .cover-image {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
+        }
+        .cover-info { padding: 20px; }
+        .cover-title { font-size: 1.2rem; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .download-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;
+        }
+        @media (max-width: 768px) {
+            .covers-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 微信公众号封面生成器</h1>
+            <p>AI 驱动的印象派油画风格封面，16:9 完美比例</p>
+            <div class="style-tags">
+                <span class="style-tag">✨ 印象派油画</span>
+                <span class="style-tag">🌅 暖色治愈</span>
+                <span class="style-tag">🍃 清新自然</span>
+                <span class="style-tag">📱 16:9</span>
+            </div>
+        </div>
+
+        <div class="keywords-input">
+            <h3>选择关键词（多选）：</h3>
+            <div class="keyword-input-group" id="keywordGroup">
+                <div class="keyword-chip" data-keyword="蓝天">☁️ 蓝天</div>
+                <div class="keyword-chip" data-keyword="白云">🌤️ 白云</div>
+                <div class="keyword-chip" data-keyword="大海">🌊 大海</div>
+                <div class="keyword-chip" data-keyword="青草地">🌿 青草地</div>
+                <div class="keyword-chip" data-keyword="阳光">☀️ 阳光</div>
+                <div class="keyword-chip" data-keyword="彩虹">🌈 彩虹</div>
+                <div class="keyword-chip" data-keyword="花朵">🌸 花朵</div>
+                <div class="keyword-chip" data-keyword="山峦">⛰️ 山峦</div>
+            </div>
+            <button class="generate-btn" onclick="generateCover()">✨ 生成专属封面</button>
+        </div>
+
+        <div class="covers-grid" id="coversGrid"></div>
+    </div>
+
+    <script>
+        let selectedKeywords = [];
+
+        document.querySelectorAll('.keyword-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                const keyword = this.dataset.keyword;
+                if (selectedKeywords.includes(keyword)) {
+                    selectedKeywords = selectedKeywords.filter(k => k !== keyword);
+                } else {
+                    selectedKeywords.push(keyword);
+                }
+            });
+        });
+
+        function generateCover() {
+            const keywords = selectedKeywords.length > 0 ? selectedKeywords.join(' ') : '随机生成';
+            alert(`已选择关键词：${keywords}\n\n请复制下面的提示词告诉我，我会为你生成专属封面！\n\n${keywords}`);
+        }
+    </script>
+</body>
+</html>
